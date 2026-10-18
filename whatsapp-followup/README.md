@@ -55,11 +55,7 @@
 3. **API Keys** → Create Key → 先复制保存好，第 3 步用。**不要贴在聊天里**
 
 ### 2. Cloudflare ✅ 已完成（2026-10-18）
-在这个文件夹的终端执行，会打开浏览器让你登录 Cloudflare：
-```
-npx wrangler login
-```
-然后我会建 D1 数据库、建表、部署，拿到网址：`https://whatsapp-followup.propertyhomenks.workers.dev`
+已登录（npx wrangler login）、建好 D1 数据库、部署：https://whatsapp-followup.propertyhomenks.workers.dev
 
 ### 3. 输入密钥（你自己输入，每行执行后贴上对应的值）
 ```
