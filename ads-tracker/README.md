@@ -44,11 +44,43 @@ CPL 颜色：绿色 = 低于 30 天平均；红色 = 高于平均 1.5 倍，或�
 | 昨天（2026-10-17） | 242.44 | 8 | 30.31 |
 | 近 30 天（2026-09-18 至 10-17） | 8,423.86 | 247 | 34.10 |
 
+## 每日记录（自动）
+
+每天早上 9 点自动加一行（前一天的数据，整个账户）。
+
+| 日期 | 花费 RM | Leads | CPL RM | 最低 CPL 广告组 | 最高 CPL / 没 lead 的广告组 |
+|---|---:|---:|---:|---|---|
+| 2026-10-17 | 242.44 | 8 | 30.31 | Qaya - Ken NKS - 10/26 – Copy（RM 14.83） | Impiana shop - Fai - 15/10/26 – Copy（花 RM 20.66，0 lead） |
+
+## 自动化（每天 9:00）
+
+Claude 桌面 app 的定时任务「Ng Kar Siong 广告日报」每天 9:00 会：
+
+1. 从 Meta Ads 拉前一天的数据（账户合计 + 每个广告组）
+2. 在上面「每日记录」加一行，更新数据快照
+3. 同步到 Notion、Google Drive，push 到 GitHub
+4. 发日报到 Telegram
+
+只有 Claude 桌面 app 开着时才会跑；9 点时 app 没开，下次打开 app 时会补跑。
+
+### 连接 Telegram bot
+
+1. 在 Telegram 找 **@BotFather**，发 `/newbot`，按提示取名字，拿到 bot token
+2. 在你自己的终端跑（把 token 换进去，不要贴到聊天里）：`setx TELEGRAM_BOT_TOKEN "你的token"`
+3. 在 Telegram 打开你的 bot，发 `/start`
+4. 开一个新终端，跑 `powershell -ExecutionPolicy Bypass -File ads-tracker\scripts\get-telegram-chat-id.ps1`，它会找到你的 chat ID 并存好
+5. 测试：`powershell -ExecutionPolicy Bypass -File ads-tracker\scripts\send-telegram.ps1 -MessageFile ads-tracker\README.md`
+
+想发到群组：把 bot 拉进群，在群里发一句话，再跑第 4 步。
+
 ## 文件
 
 - `README.md`：本文件
 - `dashboard-page.html`：dashboard 页面的源代码（HTML + JS，给 Dashboard artifact 用）
+- `scripts/send-telegram.ps1`：把一个文字文件发到你的 Telegram（读 `TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`）
+- `scripts/get-telegram-chat-id.ps1`：找到你的 chat ID 并存成 `TELEGRAM_CHAT_ID`
 
 ## 更新记录
 
+- **2026-10-18**：加每天 9:00 自动日报（Meta Ads → .md / Notion / Drive / GitHub / Telegram），加 Telegram 脚本
 - **2026-10-18**：建立 dashboard（Ng Kar Siong 账户，广告组 + 广告账户维度，每日花费 / Leads / CPL）
