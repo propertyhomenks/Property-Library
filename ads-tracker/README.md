@@ -79,8 +79,10 @@ Claude 桌面 app 的定时任务「Ng Kar Siong 广告日报」每天 9:00 会�
 - `dashboard-page.html`：dashboard 页面的源代码（HTML + JS，给 Dashboard artifact 用）
 - `scripts/send-telegram.ps1`：把一个文字文件发到你的 Telegram（读 `TELEGRAM_BOT_TOKEN`、`TELEGRAM_CHAT_ID`）
 - `scripts/get-telegram-chat-id.ps1`：找到你的 chat ID 并存成 `TELEGRAM_CHAT_ID`
+- `scripts/setup-telegram.ps1`：一步设定（贴 token → 存好 → 找群 → 发测试讯息）
 
 ## 更新记录
 
+- **2026-10-18**：Telegram 日报改版：每个广告组一行，各区块之间空一行（总览 / 最低 CPL / 要注意 / 投放中广告组 / Dashboard）；加 `setup-telegram.ps1` 一步设定
 - **2026-10-18**：加每天 9:00 自动日报（Meta Ads → .md / Notion / Drive / GitHub / Telegram），加 Telegram 脚本
 - **2026-10-18**：建立 dashboard（Ng Kar Siong 账户，广告组 + 广告账户维度，每日花费 / Leads / CPL）
