@@ -13,8 +13,13 @@ fallthrough = true
 
 [vars]
 BUSINESS_PHONE = "60127559908"
+# 免费：Cloudflare Workers AI（默认）。有设 ANTHROPIC_API_KEY 才会改用 Claude
+WORKERS_AI_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8"
 AI_MODEL = "claude-haiku-5-5"
 # WABA_ID 在 Meta 设置好后填上
+
+[ai]
+binding = "AI"
 
 [[d1_databases]]
 binding = "DB"

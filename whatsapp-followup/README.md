@@ -8,7 +8,7 @@
 客户 WhatsApp ──► Meta Cloud API (Coexistence) ──► Cloudflare Worker /webhook ──► D1 数据库
 你手机回复（echo）──┘                     Peach 的 AI 继续照常回复，不受影响
                                                   │
-                         每 10 分钟：Claude AI 分析有新 message 的对话
+                         每 10 分钟：AI 分析有新 message 的对话（免费 Workers AI）
                                                   ▼
                                   Dashboard（有密码）https://whatsapp-followup.<你的子域>.workers.dev
 ```
@@ -30,7 +30,11 @@
 
 每位客户有：AI 一句话总结、下一步、热/温/冷、建议回复草稿（不会自动发出）、「打开 WhatsApp」按钮。
 
-AI 模型：`claude-haiku-5-5`（`wrangler.toml` 的 `AI_MODEL`，可改成 `claude-opus-5-5`，比较准但贵很多）。
+## 费用：全部免费
+- Cloudflare Workers / D1：免费方案够用
+- Meta Cloud API：接收 message 不收费
+- AI：默认用 **Cloudflare Workers AI**（`@cf/qwen/qwen3-30b-a3b-fp8`），每天 10,000 neurons 免费，大约够分析 100 多次对话；超过当天就停，隔天 8am（马来西亚时间）重置，不会扣钱
+- 想要更准：设 `ANTHROPIC_API_KEY`（要充值，Haiku 5.5 一个月大约 USD 1–2）就会自动改用 Claude（`AI_MODEL`），不用改代码
 
 ## 文件
 
@@ -41,7 +45,7 @@ AI 模型：`claude-haiku-5-5`（`wrangler.toml` 的 `AI_MODEL`，可改成 `cla
 
 ## 设置步骤
 
-### 1. Anthropic API key（你自己做）
+### 1. Anthropic API key（可选，要钱；不做就用免费 Workers AI）
 1. 去 https://console.anthropic.com 注册 / 登录
 2. **Billing** 充值（先充 USD 5 就够用很久）
 3. **API Keys** → Create Key → 先复制保存好，第 3 步用。**不要贴在聊天里**
@@ -57,7 +61,7 @@ npx wrangler login
 ```
 npx wrangler secret put DASH_PASSWORD        # 你自己定的 dashboard 密码
 npx wrangler secret put META_VERIFY_TOKEN    # 自己随便定一串字，第 4 步要填一样的
-npx wrangler secret put ANTHROPIC_API_KEY    # 第 1 步的 key
+npx wrangler secret put ANTHROPIC_API_KEY    # 可选：第 1 步的 key
 npx wrangler secret put META_APP_SECRET      # 第 4 步拿到
 npx wrangler secret put META_TOKEN           # 第 5 步拿到
 ```

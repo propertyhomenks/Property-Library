@@ -12,12 +12,14 @@
 //   GET  /privacy              Privacy policy (needed to switch the Meta app to Live)
 //
 // Bindings / secrets: DB (D1), DASH_PASSWORD, META_VERIFY_TOKEN, META_APP_SECRET,
-// META_TOKEN, WABA_ID, BUSINESS_PHONE, ANTHROPIC_API_KEY, AI_MODEL (optional)
+// META_TOKEN, WABA_ID, BUSINESS_PHONE, AI (Workers AI, free) or ANTHROPIC_API_KEY (paid, used when set),
+// AI_MODEL / WORKERS_AI_MODEL (optional)
 
 import DASHBOARD_HTML from "./dashboard.html";
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 const DEFAULT_MODEL = "claude-haiku-5-5";
+const DEFAULT_WORKERS_AI_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
 
 export default {
   async fetch(request, env, ctx) {
@@ -238,7 +240,7 @@ next_action：一句话中文写 Kar Siong 下一步该做什么。
 draft_reply：给 Kar Siong 参考的回复草稿，用客户使用的语言（中文 / English / Bahasa），口吻亲切专业，简短。closed 时给空字符串。`;
 
 async function analyzePending(env, limit) {
-  if (!env.ANTHROPIC_API_KEY) return { analyzed: 0, error: "ANTHROPIC_API_KEY not set" };
+  if (!env.ANTHROPIC_API_KEY && !env.AI) return { analyzed: 0, error: "no AI configured" };
   const settle = Math.floor(Date.now() / 1000) - 60; // let bursts of messages finish first
   const { results } = await env.DB.prepare(
     "SELECT * FROM conversations WHERE needs_ai = 1 AND last_msg_at <= ? ORDER BY last_msg_at DESC LIMIT ?"
@@ -278,6 +280,46 @@ async function analyzeConversation(env, conv) {
 对话记录：
 ${transcript}`;
 
+  const result = env.ANTHROPIC_API_KEY
+    ? await analyzeWithClaude(env, userContent)
+    : await analyzeWithWorkersAi(env, userContent);
+  return normalizeResult(result);
+}
+
+// Free option: Cloudflare Workers AI (10,000 neurons/day free).
+async function analyzeWithWorkersAi(env, userContent) {
+  const schemaHint = `只输出一个 JSON 对象，不要任何其他文字，格式：
+{"status":"urgent|follow_up|waiting_on_me|waiting_on_customer|closed","heat":"hot|warm|cold","summary":"","next_action":"","follow_up_date":"YYYY-MM-DD 或空字符串","draft_reply":""}`;
+  const res = await env.AI.run(env.WORKERS_AI_MODEL || DEFAULT_WORKERS_AI_MODEL, {
+    messages: [
+      { role: "system", content: `${SYSTEM_PROMPT}\n\n${schemaHint}` },
+      { role: "user", content: `${userContent}\n\n/no_think` },
+    ],
+    max_tokens: 1500,
+  });
+  const text = typeof res?.response === "object" ? JSON.stringify(res.response)
+    : res?.response ?? res?.choices?.[0]?.message?.content ?? "";
+  const cleaned = String(text).replace(/<think>[\s\S]*?<\/think>/g, "");
+  const match = cleaned.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error(`Workers AI returned no JSON: ${cleaned.slice(0, 120)}`);
+  return JSON.parse(match[0]);
+}
+
+// Keep stored values inside the allowed sets even if a model drifts.
+function normalizeResult(r) {
+  const pick = (v, allowed, fallback) => (allowed.includes(v) ? v : fallback);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(r.follow_up_date || "") ? r.follow_up_date : "";
+  return {
+    status: pick(r.status, AI_SCHEMA.properties.status.enum, "waiting_on_customer"),
+    heat: pick(r.heat, AI_SCHEMA.properties.heat.enum, "warm"),
+    summary: String(r.summary || ""),
+    next_action: String(r.next_action || ""),
+    follow_up_date: date,
+    draft_reply: String(r.draft_reply || ""),
+  };
+}
+
+async function analyzeWithClaude(env, userContent) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
