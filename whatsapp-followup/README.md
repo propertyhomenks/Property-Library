@@ -2,6 +2,10 @@
 
 提醒你还有谁没回、漏掉了谁。追踪号码：**+60 12-755 9908 (Kar Siong)**。
 
+**网址：https://whatsapp-followup.propertyhomenks.workers.dev**
+
+状态（2026-10-18）：已部署到 Cloudflare（D1 数据库 `whatsapp-followup`，APAC）。免费 Workers AI 已用测试对话实测，分类和草稿正常。还要：设密钥（第 3 步）、Meta App（第 4–5 步）、订阅 + 真实测试（第 6 步）。
+
 ## 怎么运作
 
 ```
@@ -10,7 +14,7 @@
                                                   │
                          每 10 分钟：AI 分析有新 message 的对话（免费 Workers AI）
                                                   ▼
-                                  Dashboard（有密码）https://whatsapp-followup.<你的子域>.workers.dev
+                                  Dashboard（有密码）https://whatsapp-followup.propertyhomenks.workers.dev
 ```
 
 - Peach 是 WhatsApp 账户的 partner，我们另外开自己的 Meta app 订阅同一个 WABA，两边并行。
@@ -50,12 +54,12 @@
 2. **Billing** 充值（先充 USD 5 就够用很久）
 3. **API Keys** → Create Key → 先复制保存好，第 3 步用。**不要贴在聊天里**
 
-### 2. Cloudflare（你登录，我来部署）
+### 2. Cloudflare ✅ 已完成（2026-10-18）
 在这个文件夹的终端执行，会打开浏览器让你登录 Cloudflare：
 ```
 npx wrangler login
 ```
-然后我会建 D1 数据库、建表、部署，拿到网址：`https://whatsapp-followup.<子域>.workers.dev`
+然后我会建 D1 数据库、建表、部署，拿到网址：`https://whatsapp-followup.propertyhomenks.workers.dev`
 
 ### 3. 输入密钥（你自己输入，每行执行后贴上对应的值）
 ```
@@ -69,9 +73,9 @@ npx wrangler secret put META_TOKEN           # 第 5 步拿到
 ### 4. Meta App（你自己操作）
 1. https://developers.facebook.com → My Apps → **Create App** → 用途选 **Other** → 类型 **Business** → Business portfolio 选 **Property Library**
 2. App 里 **Add product → WhatsApp**。⚠️ **不要按 Add phone number / 注册号码**，不然会影响 Peach
-3. **App settings → Basic**：复制 **App secret**（→ 第 3 步 `META_APP_SECRET`），Privacy Policy URL 填 `https://whatsapp-followup.<子域>.workers.dev/privacy`
+3. **App settings → Basic**：复制 **App secret**（→ 第 3 步 `META_APP_SECRET`），Privacy Policy URL 填 `https://whatsapp-followup.propertyhomenks.workers.dev/privacy`
 4. **WhatsApp → Configuration → Webhook**：
-   - Callback URL：`https://whatsapp-followup.<子域>.workers.dev/webhook`
+   - Callback URL：`https://whatsapp-followup.propertyhomenks.workers.dev/webhook`
    - Verify token：跟 `META_VERIFY_TOKEN` 一样
    - Webhook fields 订阅：**messages**、**smb_message_echoes**
 5. 把 App 切换到 **Live** 模式（页面上方的开关）
