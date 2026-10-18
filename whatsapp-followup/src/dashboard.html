@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WhatsApp 跟进提醒</title>
+<style>
+  :root {
+    --bg: #f5f6f4; --card: #ffffff; --text: #1d2420; --muted: #66706a; --line: #e2e6e3;
+    --red: #c8352b; --red-bg: #fdecea; --orange: #b85c00; --orange-bg: #fff1e0;
+    --yellow: #8a6d00; --yellow-bg: #fff8d6; --green: #1a7f4b; --green-bg: #e3f5ea;
+    --blue: #2058b8; --blue-bg: #e7efff; --gray-bg: #eef0ee; --accent: #1a7f4b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111513; --card: #1a1f1c; --text: #e7ece9; --muted: #95a09a; --line: #2c3430;
+      --red: #ff7b70; --red-bg: #3a1c19; --orange: #ffad5c; --orange-bg: #3a2810;
+      --yellow: #f0d060; --yellow-bg: #332c0e; --green: #5fd394; --green-bg: #15301f;
+      --blue: #8ab4ff; --blue-bg: #1a2640; --gray-bg: #242a27; --accent: #5fd394;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  header { padding: 20px 16px 8px; max-width: 980px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+  h1 { font-size: 22px; margin: 0; }
+  .updated { color: var(--muted); font-size: 13px; }
+  main { max-width: 980px; margin: 0 auto; padding: 0 16px 48px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin: 12px 0 16px; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; cursor: pointer; text-align: left; color: inherit; font: inherit; }
+  .stat b { display: block; font-size: 26px; line-height: 1.2; }
+  .stat span { color: var(--muted); font-size: 13px; }
+  .stat.red b { color: var(--red); } .stat.orange b { color: var(--orange); } .stat.yellow b { color: var(--yellow); }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .toolbar input { flex: 1; min-width: 180px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--text); font: inherit; }
+  button { font: inherit; cursor: pointer; }
+  .btn { border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 8px; padding: 6px 12px; font-size: 14px; }
+  .btn { text-decoration: none; display: inline-block; }
+  .btn:hover { border-color: var(--muted); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  section { margin-top: 22px; }
+  section h2 { font-size: 16px; margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }
+  section h2 .count { background: var(--gray-bg); color: var(--muted); font-size: 12px; border-radius: 999px; padding: 1px 8px; font-weight: 600; }
+  section .hint { color: var(--muted); font-size: 13px; margin: -4px 0 8px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+  .card.overdue { border-left-color: var(--red); } .card.new { border-left-color: var(--blue); }
+  .card.urgent { border-left-color: var(--orange); } .card.promised { border-left-color: var(--orange); }
+  .card.due { border-left-color: var(--yellow); }
+  .top { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .name { font-weight: 700; font-size: 16px; }
+  .phone { color: var(--muted); font-size: 13px; }
+  .age { margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .age.late { color: var(--red); font-weight: 600; }
+  .chip { font-size: 12px; border-radius: 999px; padding: 1px 8px; font-weight: 600; }
+  .chip.hot { background: var(--red-bg); color: var(--red); } .chip.warm { background: var(--orange-bg); color: var(--orange); }
+  .chip.cold { background: var(--blue-bg); color: var(--blue); } .chip.bot { background: var(--green-bg); color: var(--green); }
+  .chip.date { background: var(--yellow-bg); color: var(--yellow); }
+  .last { margin: 8px 0 0; padding: 8px 10px; background: var(--gray-bg); border-radius: 8px; white-space: pre-wrap; word-break: break-word; }
+  .last small { display: block; color: var(--muted); font-size: 12px; }
+  .ai { margin-top: 8px; font-size: 14px; }
+  .ai div { margin-top: 2px; } .ai .label { color: var(--muted); }
+  details { margin-top: 6px; font-size: 14px; }
+  details summary { cursor: pointer; color: var(--muted); }
+  .draft { white-space: pre-wrap; padding: 8px 10px; border: 1px dashed var(--line); border-radius: 8px; margin-top: 6px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .empty { color: var(--muted); font-size: 14px; padding: 6px 2px; }
+  .collapsed .card { display: none; }
+  .toggle { background: none; border: none; color: var(--muted); font-size: 13px; padding: 0; text-decoration: underline; }
+</style>
+</head>
+<body>
+<header>
+  <h1>WhatsApp 跟进提醒</h1>
+  <span class="updated" id="updated">载入中…</span>
+</header>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="toolbar">
+    <input id="search" type="search" placeholder="搜索名字、号码、内容…">
+    <button class="btn" id="refresh">刷新</button>
+    <button class="btn" id="analyze" title="马上让 AI 分析新的对话">AI 立即分析</button>
+  </div>
+  <div id="sections"></div>
+</main>
+
+<script>
+const OVERDUE_SECONDS = 2 * 3600;      // 超过 2 小时没回 = 漏掉
+const SILENT_SECONDS = 3 * 86400;      // 你回了，客户 3 天没回 = 要跟进
+
+const SECTIONS = [
+  { key: "overdue",  title: "🔴 超过 2 小时你还没回", hint: "客户最后一条 message 你本人还没回复", tone: "red" },
+  { key: "new",      title: "🆕 新消息（2 小时内）", hint: "还在时间内，尽快回", tone: "" },
+  { key: "urgent",   title: "🔥 AI 判断要马上跟进", hint: "客户有明确意向，在等你", tone: "orange" },
+  { key: "promised", title: "💬 你答应要给的东西", hint: "资料、floor plan、报价、回电…", tone: "orange" },
+  { key: "due",      title: "📅 今天要 follow up", hint: "到了 AI 建议的跟进日期，或你回了之后客户 3 天没回", tone: "yellow" },
+  { key: "waiting",  title: "⏳ 等客户回", hint: "球在客户那边，还没到要追的时候", tone: "", collapsed: true },
+  { key: "snoozed",  title: "😴 稍后提醒", hint: "", tone: "", collapsed: true },
+  { key: "closed",   title: "✅ 已处理 / 已结束", hint: "客户再 message 你会自动回到上面", tone: "", collapsed: true },
+];
+
+let data = { now: 0, conversations: [] };
+const collapsed = new Set(SECTIONS.filter(s => s.collapsed).map(s => s.key));
+
+function todayMyt(now) {
+  return new Date(now * 1000).toLocaleDateString("en-CA", { timeZone: "Asia/Kuala_Lumpur" });
+}
+
+function classify(c, now) {
+  const lastIn = c.last_in_at || 0;
+  const lastHuman = c.last_human_at || 0;
+  const unreplied = lastIn > lastHuman;
+  if (c.done_at && c.done_at >= lastIn) return "closed";
+  if (c.snooze_until && c.snooze_until > now) return "snoozed";
+  if (c.ai_status === "closed" && !(unreplied && c.needs_ai)) return "closed";
+  if (unreplied) return now - lastIn > OVERDUE_SECONDS ? "overdue" : "new";
+  if (c.ai_status === "urgent") return "urgent";
+  if (c.ai_status === "waiting_on_me") return "promised";
+  if ((c.ai_follow_up && c.ai_follow_up <= todayMyt(now)) || (lastHuman > lastIn && now - lastHuman > SILENT_SECONDS)) return "due";
+  return "waiting";
+}
+
+function ago(seconds) {
+  if (seconds < 3600) return `${Math.max(1, Math.round(seconds / 60))} 分钟前`;
+  if (seconds < 86400) return `${Math.round(seconds / 3600)} 小时前`;
+  return `${Math.round(seconds / 86400)} 天前`;
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+}
+
+const HEAT = { hot: "热", warm: "温", cold: "冷" };
+
+function card(c, key, now) {
+  const lastIn = c.last_in_at || 0;
+  const botReplied = (c.last_bot_at || 0) >= lastIn && lastIn > (c.last_human_at || 0);
+  const late = key === "overdue";
+  const waText = c.ai_draft ? `?text=${encodeURIComponent(c.ai_draft)}` : "";
+  return `
+  <div class="card ${key}" data-search="${esc([c.name, c.wa_id, c.last_in_text, c.ai_summary].join(" ").toLowerCase())}">
+    <div class="top">
+      <span class="name">${esc(c.name || "未知客户")}</span>
+      <span class="phone">+${esc(c.wa_id)}</span>
+      ${c.ai_heat ? `<span class="chip ${c.ai_heat}">${HEAT[c.ai_heat]}</span>` : ""}
+      ${botReplied ? `<span class="chip bot">AI 已回</span>` : ""}
+      ${c.ai_follow_up ? `<span class="chip date">跟进 ${esc(c.ai_follow_up)}</span>` : ""}
+      <span class="age ${late ? "late" : ""}">客户 ${ago(now - lastIn)}</span>
+    </div>
+    <div class="last"><small>客户最后说</small>${esc(c.last_in_text || "—")}</div>
+    ${c.ai_summary ? `<div class="ai">
+      <div><span class="label">总结：</span>${esc(c.ai_summary)}</div>
+      ${c.ai_next_action ? `<div><span class="label">下一步：</span>${esc(c.ai_next_action)}</div>` : ""}
+    </div>` : (c.needs_ai ? `<div class="ai"><span class="label">AI 分析中…</span></div>` : "")}
+    ${c.ai_draft ? `<details><summary>建议回复草稿</summary><div class="draft">${esc(c.ai_draft)}</div></details>` : ""}
+    <div class="actions">
+      <a class="btn primary" href="https://wa.me/${esc(c.wa_id)}${waText}" target="_blank" rel="noopener">打开 WhatsApp</a>
+      ${c.ai_draft ? `<button class="btn" data-copy="${esc(c.ai_draft)}">复制草稿</button>` : ""}
+      ${key === "closed" || key === "snoozed"
+        ? `<button class="btn" data-act="reopen" data-id="${esc(c.wa_id)}">移回待办</button>`
+        : `<button class="btn" data-act="done" data-id="${esc(c.wa_id)}">已处理</button>
+           <button class="btn" data-act="snooze" data-days="1" data-id="${esc(c.wa_id)}">明天提醒</button>
+           <button class="btn" data-act="snooze" data-days="3" data-id="${esc(c.wa_id)}">3 天后</button>`}
+    </div>
+  </div>`;
+}
+
+function render() {
+  const now = data.now;
+  const groups = Object.fromEntries(SECTIONS.map(s => [s.key, []]));
+  for (const c of data.conversations) groups[classify(c, now)].push(c);
+  groups.overdue.sort((a, b) => a.last_in_at - b.last_in_at); // 等最久的放最前
+
+  document.getElementById("stats").innerHTML = SECTIONS.slice(0, 5).map(s =>
+    `<button class="stat ${s.tone}" data-jump="${s.key}"><b>${groups[s.key].length}</b><span>${s.title.replace(/^\S+\s/, "")}</span></button>`
+  ).join("");
+
+  document.getElementById("sections").innerHTML = SECTIONS.map(s => `
+    <section id="sec-${s.key}" class="${collapsed.has(s.key) ? "collapsed" : ""}">
+      <h2>${s.title} <span class="count">${groups[s.key].length}</span>
+        ${s.collapsed ? `<button class="toggle" data-toggle="${s.key}">${collapsed.has(s.key) ? "展开" : "收起"}</button>` : ""}</h2>
+      ${s.hint ? `<p class="hint">${s.hint}</p>` : ""}
+      ${groups[s.key].length ? groups[s.key].map(c => card(c, s.key, now)).join("") : `<div class="empty">没有</div>`}
+    </section>`).join("");
+
+  document.getElementById("updated").textContent =
+    `更新于 ${new Date().toLocaleTimeString("zh-CN", { timeZone: "Asia/Kuala_Lumpur", hour: "2-digit", minute: "2-digit" })} · 共 ${data.conversations.length} 位客户`;
+  applySearch();
+}
+
+function applySearch() {
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  document.querySelectorAll(".card").forEach(el => { el.style.display = !q || el.dataset.search.includes(q) ? "" : "none"; });
+  document.querySelectorAll("section").forEach(sec => sec.classList.toggle("collapsed", !q && collapsed.has(sec.id.slice(4))));
+}
+
+async function load() {
+  try {
+    const res = await fetch(location.origin + "/api/conversations");
+    if (!res.ok) throw new Error(res.status);
+    data = await res.json();
+    render();
+  } catch (err) {
+    document.getElementById("updated").textContent = `载入失败（${err.message}），稍后自动重试`;
+  }
+}
+
+document.addEventListener("click", async (e) => {
+  const t = e.target.closest("button");
+  if (!t) return;
+  if (t.dataset.jump) document.getElementById(`sec-${t.dataset.jump}`).scrollIntoView({ behavior: "smooth" });
+  if (t.dataset.toggle) { collapsed.has(t.dataset.toggle) ? collapsed.delete(t.dataset.toggle) : collapsed.add(t.dataset.toggle); render(); }
+  if (t.dataset.copy) { await navigator.clipboard.writeText(t.dataset.copy); t.textContent = "已复制 ✓"; }
+  if (t.dataset.act) {
+    t.disabled = true;
+    await fetch(location.origin + "/api/action", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ wa_id: t.dataset.id, action: t.dataset.act, days: t.dataset.days }) });
+    load();
+  }
+  if (t.id === "refresh") load();
+  if (t.id === "analyze") {
+    t.disabled = true; t.textContent = "分析中…";
+    const r = await fetch(location.origin + "/admin/analyze", { method: "POST" }).then(r => r.json()).catch(() => ({}));
+    t.disabled = false; t.textContent = `AI 立即分析（刚分析 ${r.analyzed ?? 0} 位）`;
+    load();
+  }
+});
+document.getElementById("search").addEventListener("input", applySearch);
+
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>

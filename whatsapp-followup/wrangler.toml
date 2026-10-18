@@ -1,0 +1,22 @@
+name = "whatsapp-followup"
+main = "src/worker.js"
+compatibility_date = "2026-09-01"
+
+# AI 每 10 分钟分析一次有新 message 的对话
+[triggers]
+crons = ["*/10 * * * *"]
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
+[vars]
+BUSINESS_PHONE = "60127559908"
+AI_MODEL = "claude-haiku-5-5"
+# WABA_ID 在 Meta 设置好后填上
+
+[[d1_databases]]
+binding = "DB"
+database_name = "whatsapp-followup"
+database_id = "REPLACE_AFTER_CREATE"
