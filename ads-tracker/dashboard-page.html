@@ -1,0 +1,536 @@
+<style>
+.nk { display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); }
+.nk-head { display: grid; gap: var(--cds-gap-xs); }
+.nk-sub { margin: 0; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); letter-spacing: .02em; }
+.nk-title { margin: 0; font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); text-wrap: balance; }
+.nk-take { margin: 0; font-size: var(--cds-font-size-body); max-width: 70ch; }
+.nk-take b, .nk b { font-weight: var(--cds-font-weight-medium); }
+.nk-bar { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
+.nk-chip { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-md); border-radius: 999px; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); cursor: pointer; }
+.nk-chip[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.nk-chip:focus-visible, .nk-sort:focus-visible, .nk-search:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.nk-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: var(--cds-gap-md); }
+.nk-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); min-width: 0; }
+.nk-kpi { display: grid; gap: var(--cds-gap-xs); align-content: start; }
+.nk-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.nk-num { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.nk-unit { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-right: .25em; }
+.nk-unit-after { margin-left: .15em; margin-right: 0; }
+.nk-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+.nk-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+.nk-cardhead { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); justify-content: space-between; align-items: end; margin-bottom: var(--cds-gap-md); }
+.nk-cardhead > div { display: grid; gap: var(--cds-gap-xs); min-width: 0; }
+.nk-h { margin: 0; font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); }
+.nk-chart { position: relative; min-height: 220px; }
+.nk-tick { font-size: var(--cds-font-size-caption); fill: var(--color-fg-muted); font-family: var(--font-anthropic-sans); font-variant-numeric: tabular-nums; }
+.nk-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; font-variant-numeric: tabular-nums; z-index: 2; }
+.nk-tip .nk-tip-d { color: var(--cds-text-secondary); }
+.nk-search { font: inherit; font-size: var(--cds-font-size-caption); padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); width: min(100%, 14rem); }
+.nk-tablewrap { max-height: 34rem; overflow: auto; min-height: 8rem; }
+table.nk-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-body); }
+.nk-table th { position: sticky; top: 0; background: var(--color-panel); text-align: right; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; z-index: 1; }
+.nk-sort { all: unset; cursor: pointer; }
+.nk-table td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); text-align: right; white-space: nowrap; }
+.nk-table .nk-l { text-align: left; }
+.nk-table td.nk-name { white-space: normal; min-width: 11rem; }
+.nk-table tbody tr:hover td { background: var(--color-bg); }
+.nk-pill { display: inline-block; font-size: var(--cds-font-size-caption); padding: 0 var(--cds-pad-sm); border-radius: 999px; border: 1px solid var(--color-border-line); color: var(--color-fg-muted); }
+.nk-pill.nk-on { color: var(--color-ok); border-color: currentColor; }
+.nk-good { color: var(--color-ok); }
+.nk-bad { color: var(--color-bad); }
+.nk-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: 8rem; }
+.nk-fail::before { content: ''; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
+.nk [data-dash-source-state=empty] { color: transparent; }
+.nk [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+@media (max-width: 640px) { .nk-hide-sm { display: none; } }
+</style>
+
+<div class="nk">
+  <header class="nk-head" id="top">
+    <p class="nk-sub">广告账户 <b data-source="account" data-field="account_name" data-row="0" class="dash-skeleton">—</b> · Meta Ads · 货币 MYR</p>
+    <h1 class="nk-title">Ng Kar Siong 每日广告追踪</h1>
+    <p class="nk-take" id="nk-take"><span class="nk-plabel">昨天</span>花费 RM <b data-source="period_totals" data-field="spend" data-row="0">—</b>，拿到 <b data-source="period_totals" data-field="leads" data-row="0">—</b> 个 leads，CPL RM <b data-source="period_totals" data-field="cpl" data-row="0">—</b>。近30天平均 CPL 是 RM <b data-source="summary30" data-field="cpl" data-row="0">—</b><span class="nk-verdict"></span></p>
+  </header>
+
+  <div class="nk-bar" role="group" aria-label="时间段" id="period">
+    <button class="nk-chip" type="button" data-period="today" aria-pressed="false">今天</button>
+    <button class="nk-chip" type="button" data-period="yesterday" aria-pressed="true">昨天</button>
+    <button class="nk-chip" type="button" data-period="last_7d" aria-pressed="false">近 7 天</button>
+    <button class="nk-chip" type="button" data-period="last_30d" aria-pressed="false">近 30 天</button>
+    <button class="nk-chip" type="button" data-period="this_month" aria-pressed="false">本月</button>
+    <span class="nk-note nk-today-note" hidden>今天的数据还在累积，晚点再看会更准。</span>
+  </div>
+
+  <section class="nk-kpis" id="kpis" aria-label="主要数字">
+    <div class="nk-card nk-kpi">
+      <span class="nk-label">花费 · <span class="nk-plabel">昨天</span></span>
+      <div class="nk-num"><span class="nk-unit">RM</span><span class="dash-skeleton" data-source="period_totals" data-field="spend" data-row="0">—</span></div>
+    </div>
+    <div class="nk-card nk-kpi">
+      <span class="nk-label">Leads（私讯对话）</span>
+      <div class="nk-num"><span class="dash-skeleton" data-source="period_totals" data-field="leads" data-row="0">—</span></div>
+    </div>
+    <div class="nk-card nk-kpi">
+      <span class="nk-label">CPL（每个 lead 成本）</span>
+      <div class="nk-num"><span class="nk-unit">RM</span><span class="dash-skeleton nk-cpl-main" data-source="period_totals" data-field="cpl" data-row="0">—</span></div>
+    </div>
+    <div class="nk-card nk-kpi">
+      <span class="nk-label">展示次数</span>
+      <div class="nk-num"><span class="dash-skeleton" data-source="period_totals" data-field="impressions" data-row="0">—</span></div>
+    </div>
+    <div class="nk-card nk-kpi">
+      <span class="nk-label">链接点击率</span>
+      <div class="nk-num"><span class="dash-skeleton" data-source="period_totals" data-field="ctr_pct" data-row="0">—</span><span class="nk-unit nk-unit-after">%</span></div>
+    </div>
+  </section>
+
+  <section class="nk-card" id="adsets">
+    <div class="nk-cardhead">
+      <div>
+        <h2 class="nk-h">广告组表现 · <span class="nk-plabel">昨天</span></h2>
+        <p class="nk-note">只列出这段时间有花费的广告组。CPL 绿色 = 低于30天平均，红色 = 高于平均 1.5 倍或花了钱没 lead。</p>
+      </div>
+      <input class="nk-search" id="nk-search" type="search" placeholder="搜索广告组" aria-label="搜索广告组">
+    </div>
+    <div class="nk-tablewrap">
+      <table class="nk-table" id="nk-adset-table" data-source="adset_perf" data-row-key="adset_id">
+        <thead><tr>
+          <th class="nk-l" data-field="account_name"><button class="nk-sort" type="button" data-k="account_name">广告账户</button></th>
+          <th class="nk-l" data-field="adset_name"><button class="nk-sort" type="button" data-k="adset_name">广告组</button></th>
+          <th class="nk-l" data-field="status"><button class="nk-sort" type="button" data-k="status">状态</button></th>
+          <th data-field="spend"><button class="nk-sort" type="button" data-k="spend">花费 RM</button></th>
+          <th data-field="leads"><button class="nk-sort" type="button" data-k="leads">Leads</button></th>
+          <th data-field="cpl"><button class="nk-sort" type="button" data-k="cpl">CPL RM</button></th>
+          <th class="nk-hide-sm" data-field="impressions"><button class="nk-sort" type="button" data-k="impressions">展示</button></th>
+          <th class="nk-hide-sm" data-field="clicks"><button class="nk-sort" type="button" data-k="clicks">链接点击</button></th>
+          <th class="nk-hide-sm" data-field="ctr_pct"><button class="nk-sort" type="button" data-k="ctr_pct">点击率 %</button></th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="nk-grid" id="trend">
+    <section class="nk-card" id="spend-chart-card">
+      <div class="nk-cardhead"><div>
+        <h2 class="nk-h">每日花费</h2>
+        <p class="nk-note">近 30 天，整个广告账户，RM</p>
+      </div></div>
+      <div class="nk-chart" id="nk-spend-chart" data-source="daily_totals"></div>
+    </section>
+    <section class="nk-card" id="cpl-chart-card">
+      <div class="nk-cardhead"><div>
+        <h2 class="nk-h">每日 CPL</h2>
+        <p class="nk-note">近 30 天，虚线 = 30 天平均。没 lead 的日子不画点。</p>
+      </div></div>
+      <div class="nk-chart" id="nk-cpl-chart" data-source="daily_totals summary30"></div>
+    </section>
+  </div>
+
+  <section class="nk-card" id="daily">
+    <div class="nk-cardhead"><div>
+      <h2 class="nk-h">每日记录</h2>
+      <p class="nk-note">近 30 天，最新的在上面。</p>
+    </div></div>
+    <div class="nk-tablewrap">
+      <table class="nk-table" id="nk-daily-table" data-source="daily_totals" data-row-key="day">
+        <thead><tr>
+          <th class="nk-l" data-field="day">日期</th>
+          <th data-field="spend">花费 RM</th>
+          <th data-field="leads">Leads</th>
+          <th data-field="cpl">CPL RM</th>
+          <th class="nk-hide-sm" data-field="impressions">展示</th>
+          <th class="nk-hide-sm" data-field="clicks">链接点击</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="nk-note" id="defs">Lead = Meta 的「Messaging conversations started」（私讯对话开始，7 天归因），也就是 Ads Manager 里这些广告的「成效」。CPL = 花费 ÷ leads。链接点击率 = 链接点击 ÷ 展示次数。</p>
+</div>
+
+<script>
+dash.loader('account', {
+  description: 'Meta Ads 的回答（ad_entities 文字）转成一行：账户 ID 和名称。',
+  fn: ({ answer }) => {
+    let a = answer;
+    if (typeof a === 'string') { try { a = JSON.parse(a); } catch (e) { throw new Error(a.slice(0, 300)); } }
+    if (a && a.error) throw new Error(typeof a.error === 'string' ? a.error : JSON.stringify(a.error));
+    let list = a && a.ad_entities;
+    if (typeof list === 'string') list = JSON.parse(list);
+    if (!Array.isArray(list)) throw new Error('No ad_entities in answer. Keys: ' + Object.keys(a || {}).join(', '));
+    return { columns: ['account_id', 'account_name'], rows: list.map((r) => ({ account_id: String(r.id), account_name: r.name })) };
+  },
+});
+
+dash.loader('daily', {
+  description: 'Meta Ads 的回答转成表格：每天每个广告系列一行，花费、leads（成效）、展示、链接点击变成数字。',
+  fn: ({ answer }) => {
+    let a = answer;
+    if (typeof a === 'string') { try { a = JSON.parse(a); } catch (e) { throw new Error(a.slice(0, 300)); } }
+    if (a && a.error) throw new Error(typeof a.error === 'string' ? a.error : JSON.stringify(a.error));
+    let list = a && a.ad_entities;
+    if (typeof list === 'string') list = JSON.parse(list);
+    if (!Array.isArray(list)) throw new Error('No ad_entities in answer. Keys: ' + Object.keys(a || {}).join(', '));
+    const num = (v) => (v == null || v === '' ? 0 : Number(v));
+    const rows = list.map((r) => ({
+      day: String(r.date_start).slice(0, 10),
+      campaign_id: String(r.id),
+      campaign_name: r.name,
+      spend: num(r.amount_spent && r.amount_spent.value),
+      leads: r.results && Array.isArray(r.results.values) && r.results.values[0] ? num(r.results.values[0].value) : 0,
+      impressions: num(r.impressions),
+      clicks: num(r.link_click),
+    }));
+    return { columns: ['day', 'campaign_id', 'campaign_name', 'spend', 'leads', 'impressions', 'clicks'], rows };
+  },
+});
+
+dash.loader('adsets', {
+  description: 'Meta Ads 的回答转成表格：每个广告组一行，花费、leads（成效）、展示、覆盖、链接点击变成数字。',
+  fn: ({ answer }) => {
+    let a = answer;
+    if (typeof a === 'string') { try { a = JSON.parse(a); } catch (e) { throw new Error(a.slice(0, 300)); } }
+    if (a && a.error) throw new Error(typeof a.error === 'string' ? a.error : JSON.stringify(a.error));
+    let list = a && a.ad_entities;
+    if (typeof list === 'string') list = JSON.parse(list);
+    if (!Array.isArray(list)) throw new Error('No ad_entities in answer. Keys: ' + Object.keys(a || {}).join(', '));
+    const num = (v) => (v == null || v === '' ? 0 : Number(v));
+    const rows = list.map((r) => ({
+      adset_id: String(r.id),
+      adset_name: r.name,
+      status: r.effective_status || '',
+      spend: num(r.amount_spent && r.amount_spent.value),
+      leads: r.results && Array.isArray(r.results.values) && r.results.values[0] ? num(r.results.values[0].value) : 0,
+      result_type: (r.results && r.results.indicator) || '',
+      impressions: num(r.impressions),
+      reach: num(r.reach),
+      clicks: num(r.link_click),
+    }));
+    return { columns: ['adset_id', 'adset_name', 'status', 'spend', 'leads', 'result_type', 'impressions', 'reach', 'clicks'], rows };
+  },
+});
+
+dash.calc('adset_perf', {
+  inputs: ['adsets', 'account'],
+  title: '广告组 CPL',
+  description: '每个广告组加上广告账户名称，CPL = 花费 ÷ leads，点击率 = 链接点击 ÷ 展示。',
+  fn: (adsets, account) => {
+    const name = account[0] ? account[0].account_name : '';
+    return adsets.map((a) => ({
+      account_name: name,
+      adset_id: a.adset_id,
+      adset_name: a.adset_name,
+      status: a.status,
+      spend: a.spend,
+      leads: a.leads,
+      cpl: a.leads > 0 ? Math.round((a.spend / a.leads) * 100) / 100 : null,
+      impressions: a.impressions,
+      clicks: a.clicks,
+      ctr_pct: a.impressions > 0 ? Math.round((a.clicks / a.impressions) * 10000) / 100 : null,
+    }));
+  },
+});
+
+dash.calc('period_totals', {
+  inputs: ['adsets'],
+  title: '所选时间段合计',
+  description: '所有广告组加起来的花费、leads、展示、链接点击，CPL = 花费 ÷ leads。',
+  fn: (adsets) => {
+    const sum = (k) => adsets.reduce((s, a) => s + (a[k] || 0), 0);
+    const spend = Math.round(sum('spend') * 100) / 100;
+    const leads = sum('leads');
+    const impressions = sum('impressions');
+    const clicks = sum('clicks');
+    return [{
+      spend, leads, impressions, clicks,
+      cpl: leads > 0 ? Math.round((spend / leads) * 100) / 100 : null,
+      ctr_pct: impressions > 0 ? Math.round((clicks / impressions) * 10000) / 100 : null,
+      adsets_with_spend: adsets.filter((a) => a.spend > 0).length,
+    }];
+  },
+});
+
+dash.calc('daily_totals', {
+  inputs: ['daily'],
+  title: '每日合计',
+  description: '每天把所有广告系列加起来：花费、leads、展示、链接点击，CPL = 花费 ÷ leads。',
+  fn: (daily) => {
+    const by = {};
+    for (const r of daily) {
+      const d = by[r.day] || (by[r.day] = { day: r.day, spend: 0, leads: 0, impressions: 0, clicks: 0 });
+      d.spend += r.spend; d.leads += r.leads; d.impressions += r.impressions; d.clicks += r.clicks;
+    }
+    return Object.values(by)
+      .sort((a, b) => (a.day < b.day ? -1 : 1))
+      .map((d) => ({
+        day: d.day,
+        spend: Math.round(d.spend * 100) / 100,
+        leads: d.leads,
+        cpl: d.leads > 0 ? Math.round((d.spend / d.leads) * 100) / 100 : null,
+        impressions: d.impressions,
+        clicks: d.clicks,
+      }));
+  },
+});
+
+dash.calc('summary30', {
+  inputs: ['daily_totals'],
+  title: '近 30 天平均',
+  description: '近 30 天总花费、总 leads、平均 CPL（总花费 ÷ 总 leads）和每日平均花费。',
+  fn: (daily_totals) => {
+    const spend = daily_totals.reduce((s, d) => s + d.spend, 0);
+    const leads = daily_totals.reduce((s, d) => s + d.leads, 0);
+    return [{
+      spend: Math.round(spend * 100) / 100,
+      leads,
+      cpl: leads > 0 ? Math.round((spend / leads) * 100) / 100 : null,
+      avg_daily_spend: daily_totals.length ? Math.round((spend / daily_totals.length) * 100) / 100 : null,
+    }];
+  },
+});
+</script>
+
+<script>
+(() => {
+  const PERIODS = { today: '今天', yesterday: '昨天', last_7d: '近 7 天', last_30d: '近 30 天', this_month: '本月' };
+  const STATUS = { ACTIVE: '投放中', PAUSED: '已暂停', CAMPAIGN_PAUSED: '系列已暂停', ADSET_PAUSED: '已暂停', ARCHIVED: '已归档', DELETED: '已删除', WITH_ISSUES: '有问题', IN_PROCESS: '处理中' };
+  const money = d3.format(',.2f');
+  const int = d3.format(',');
+  const pct = d3.format('.2f');
+  const dayFmt = (s) => { const d = new Date(s + 'T00:00:00Z'); return d3.utcFormat('%-m月%-d日')(d) + ' 周' + '日一二三四五六'[d.getUTCDay()]; };
+  const short = (s) => d3.utcFormat('%-m/%-d')(new Date(s + 'T00:00:00Z'));
+  const root = document.querySelector('.nk');
+
+  // Period chips
+  const chips = [...root.querySelectorAll('.nk-chip')];
+  chips.forEach((b) => b.addEventListener('click', () => dash.setParams({ period: b.dataset.period })));
+
+  // Ad set table sorting + search
+  let sortK = 'spend';
+  let sortDir = -1;
+  root.querySelectorAll('#nk-adset-table .nk-sort').forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.k;
+    if (sortK === k) sortDir = -sortDir; else { sortK = k; sortDir = ['account_name', 'adset_name', 'status'].includes(k) ? 1 : -1; }
+    drawAdsets();
+  }));
+  const search = root.querySelector('#nk-search');
+  search.addEventListener('input', () => drawAdsets());
+
+  const fail = (el) => { const d = document.createElement('div'); d.className = 'nk-fail'; d.textContent = '加载失败'; el.replaceChildren(d); };
+
+  function fillMarks(id, fmt) {
+    const s = dash.data(id);
+    root.querySelectorAll(`[data-source="${id}"][data-field]`).forEach((el) => {
+      if (s.status === 'ok') {
+        const row = s.data[Number(el.dataset.row || 0)];
+        const v = row ? row[el.dataset.field] : null;
+        el.textContent = v == null ? '—' : (fmt[el.dataset.field] || String)(v);
+        el.classList.remove('dash-skeleton');
+      } else {
+        el.textContent = '—';
+        if (s.status !== 'loading') el.classList.remove('dash-skeleton');
+      }
+    });
+  }
+
+  const FMT = { spend: money, cpl: money, leads: int, impressions: int, clicks: int, ctr_pct: pct, account_name: String };
+
+  function header() {
+    const per = dash.params().period || 'yesterday';
+    chips.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.period === per)));
+    root.querySelectorAll('.nk-plabel').forEach((el) => { el.textContent = PERIODS[per] || per; });
+    root.querySelector('.nk-today-note').hidden = per !== 'today';
+    fillMarks('account', FMT);
+    fillMarks('period_totals', FMT);
+    fillMarks('summary30', FMT);
+
+    const p = dash.data('period_totals');
+    const m = dash.data('summary30');
+    const verdict = root.querySelector('.nk-verdict');
+    const main = root.querySelector('.nk-cpl-main');
+    main.classList.remove('nk-good', 'nk-bad');
+    verdict.textContent = '。';
+    if (p.status === 'ok' && m.status === 'ok' && p.data[0] && m.data[0]) {
+      const c = p.data[0].cpl;
+      const avg = m.data[0].cpl;
+      if (p.data[0].spend > 0 && c == null) { verdict.textContent = '，这段时间花了钱但还没有 lead。'; main.classList.add('nk-bad'); }
+      else if (c != null && avg != null) {
+        const diff = (c - avg) / avg;
+        if (Math.abs(diff) < 0.05) verdict.textContent = '，差不多持平。';
+        else if (diff < 0) { verdict.textContent = `，便宜了 ${Math.round(-diff * 100)}%。`; main.classList.add('nk-good'); }
+        else { verdict.textContent = `，贵了 ${Math.round(diff * 100)}%。`; main.classList.add('nk-bad'); }
+      }
+    }
+  }
+
+  function drawAdsets() {
+    const table = root.querySelector('#nk-adset-table');
+    const tbody = table.querySelector('tbody');
+    const s = dash.data('adset_perf');
+    const m = dash.data('summary30');
+    const avg = m.status === 'ok' && m.data[0] ? m.data[0].cpl : null;
+    table.querySelectorAll('th').forEach((th) => {
+      const b = th.querySelector('.nk-sort');
+      th.setAttribute('aria-sort', b && b.dataset.k === sortK ? (sortDir > 0 ? 'ascending' : 'descending') : 'none');
+    });
+    if (s.status === 'error' || s.status === 'connect' || s.status === 'declined' || s.status === 'missing') {
+      const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 9; fail(td); tr.append(td); tbody.replaceChildren(tr); return;
+    }
+    if (s.status !== 'ok') { tbody.replaceChildren(); return; }
+    const q = search.value.trim().toLowerCase();
+    const rows = s.data.filter((r) => !q || String(r.adset_name).toLowerCase().includes(q));
+    rows.sort((a, b) => {
+      const x = a[sortK]; const y = b[sortK];
+      if (x == null && y == null) return 0;
+      if (x == null) return 1;
+      if (y == null) return -1;
+      return (typeof x === 'number' ? x - y : String(x).localeCompare(String(y))) * sortDir;
+    });
+    tbody.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.adset_id;
+      const cell = (text, cls) => { const td = document.createElement('td'); if (cls) td.className = cls; td.textContent = text; tr.append(td); return td; };
+      cell(r.account_name, 'nk-l');
+      cell(r.adset_name, 'nk-l nk-name');
+      const st = cell('', 'nk-l');
+      const pill = document.createElement('span');
+      pill.className = 'nk-pill' + (r.status === 'ACTIVE' ? ' nk-on' : '');
+      pill.textContent = STATUS[r.status] || r.status;
+      st.append(pill);
+      cell(money(r.spend));
+      cell(int(r.leads));
+      const c = cell(r.cpl == null ? '—' : money(r.cpl));
+      if (r.cpl == null && r.spend > 0) c.classList.add('nk-bad');
+      else if (r.cpl != null && avg != null) { if (r.cpl <= avg) c.classList.add('nk-good'); else if (r.cpl > avg * 1.5) c.classList.add('nk-bad'); }
+      cell(int(r.impressions), 'nk-hide-sm');
+      cell(int(r.clicks), 'nk-hide-sm');
+      cell(r.ctr_pct == null ? '—' : pct(r.ctr_pct), 'nk-hide-sm');
+      return tr;
+    }));
+  }
+
+  function drawDaily() {
+    const tbody = root.querySelector('#nk-daily-table tbody');
+    const s = dash.data('daily_totals');
+    const m = dash.data('summary30');
+    const avg = m.status === 'ok' && m.data[0] ? m.data[0].cpl : null;
+    if (s.status === 'error' || s.status === 'connect' || s.status === 'declined' || s.status === 'missing') {
+      const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 6; fail(td); tr.append(td); tbody.replaceChildren(tr); return;
+    }
+    if (s.status !== 'ok') { tbody.replaceChildren(); return; }
+    tbody.replaceChildren(...s.data.slice().reverse().map((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.day;
+      const cell = (text, cls) => { const td = document.createElement('td'); if (cls) td.className = cls; td.textContent = text; tr.append(td); return td; };
+      cell(dayFmt(r.day), 'nk-l');
+      cell(money(r.spend));
+      cell(int(r.leads));
+      const c = cell(r.cpl == null ? '—' : money(r.cpl));
+      if (r.cpl == null && r.spend > 0) c.classList.add('nk-bad');
+      else if (r.cpl != null && avg != null) { if (r.cpl <= avg) c.classList.add('nk-good'); else if (r.cpl > avg * 1.5) c.classList.add('nk-bad'); }
+      cell(int(r.impressions), 'nk-hide-sm');
+      cell(int(r.clicks), 'nk-hide-sm');
+      return tr;
+    }));
+  }
+
+  function frame(el, rows, yMax) {
+    const W = Math.max(280, el.clientWidth || 600);
+    const H = 220;
+    el.replaceChildren();
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
+    const y = d3.scaleLinear([0, yMax || 1], [H - 26, 12]).nice();
+    const ticks = y.ticks(4);
+    const probe = svg.append('text').attr('class', 'nk-tick').text(d3.format(',')(ticks[ticks.length - 1]));
+    const left = probe.node().getComputedTextLength() + 10;
+    probe.remove();
+    const x = d3.scaleBand(rows.map((d) => d.day), [left, W - 8]).padding(0.28);
+    svg.append('g').selectAll('line').data(ticks).join('line')
+      .attr('x1', left).attr('x2', W - 8).attr('y1', (t) => y(t)).attr('y2', (t) => y(t))
+      .attr('stroke', 'var(--cds-chart-grid)').attr('stroke-width', 1);
+    svg.append('g').selectAll('text').data(ticks).join('text').attr('class', 'nk-tick')
+      .attr('x', left - 6).attr('y', (t) => y(t)).attr('dy', '0.32em').attr('text-anchor', 'end').text((t) => d3.format(',')(t));
+    const labelW = 34;
+    const step = Math.max(1, Math.ceil(rows.length / Math.max(1, Math.floor((W - left) / labelW))));
+    svg.append('g').selectAll('text').data(rows.filter((d, i) => (rows.length - 1 - i) % step === 0)).join('text').attr('class', 'nk-tick')
+      .attr('x', (d) => x(d.day) + x.bandwidth() / 2).attr('y', H - 8).attr('text-anchor', 'middle').text((d) => short(d.day));
+    svg.append('line').attr('x1', left).attr('x2', W - 8).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-axis)');
+    const tip = document.createElement('div'); tip.className = 'nk-tip'; tip.hidden = true; el.append(tip);
+    const showTip = (event, d) => {
+      tip.replaceChildren();
+      const a = document.createElement('div'); a.className = 'nk-tip-d'; a.textContent = dayFmt(d.day);
+      const b = document.createElement('div'); b.textContent = `花费 RM ${money(d.spend)}`;
+      const c = document.createElement('div'); c.textContent = `Leads ${int(d.leads)} · CPL ${d.cpl == null ? '—' : 'RM ' + money(d.cpl)}`;
+      tip.append(a, b, c); tip.hidden = false;
+      const [mx, my] = d3.pointer(event, el);
+      const tw = tip.offsetWidth;
+      tip.style.left = Math.min(Math.max(0, mx + 12), el.clientWidth - tw) + 'px';
+      tip.style.top = Math.max(0, my - 60) + 'px';
+    };
+    // full-height hover bands
+    const hover = svg.append('g').selectAll('rect').data(rows).join('rect')
+      .attr('x', (d) => x(d.day) - (x.step() * x.paddingInner()) / 2).attr('width', x.step()).attr('y', 0).attr('height', H - 26)
+      .attr('fill', 'transparent');
+    return { svg, x, y, W, H, left, hover, showTip, tip };
+  }
+
+  function drawSpend() {
+    const el = root.querySelector('#nk-spend-chart');
+    const s = dash.data('daily_totals');
+    if (s.status === 'ok') {
+      el.classList.remove('dash-skeleton');
+      const rows = s.data;
+      const f = frame(el, rows, d3.max(rows, (d) => d.spend));
+      const bars = f.svg.insert('g', 'g:last-of-type').selectAll('rect').data(rows).join('rect')
+        .attr('x', (d) => f.x(d.day)).attr('width', f.x.bandwidth())
+        .attr('y', (d) => f.y(d.spend)).attr('height', (d) => Math.max(0, f.y(0) - f.y(d.spend)))
+        .attr('rx', 3).attr('fill', dash.colors[0]).attr('opacity', 0.85);
+      f.hover.on('mousemove', (e, d) => { f.showTip(e, d); bars.attr('opacity', (b) => (b === d ? 1 : 0.45)); })
+        .on('mouseleave', () => { f.tip.hidden = true; bars.attr('opacity', 0.85); });
+      f.hover.raise();
+    } else if (s.status === 'loading') { el.replaceChildren(); el.classList.add('dash-skeleton'); }
+    else { el.classList.remove('dash-skeleton'); fail(el); }
+  }
+
+  function drawCpl() {
+    const el = root.querySelector('#nk-cpl-chart');
+    const s = dash.data('daily_totals');
+    const m = dash.data('summary30');
+    if (s.status === 'ok') {
+      el.classList.remove('dash-skeleton');
+      const rows = s.data;
+      const avg = m.status === 'ok' && m.data[0] ? m.data[0].cpl : null;
+      const f = frame(el, rows, Math.max(d3.max(rows, (d) => d.cpl) || 0, avg || 0));
+      const cx = (d) => f.x(d.day) + f.x.bandwidth() / 2;
+      if (avg != null) {
+        f.svg.append('line').attr('x1', f.left).attr('x2', f.W - 8).attr('y1', f.y(avg)).attr('y2', f.y(avg))
+          .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 4');
+        f.svg.append('text').attr('class', 'nk-tick').attr('x', f.W - 8).attr('y', f.y(avg) - 6).attr('text-anchor', 'end').text(`平均 RM ${money(avg)}`);
+      }
+      const line = d3.line().defined((d) => d.cpl != null).x(cx).y((d) => f.y(d.cpl));
+      f.svg.append('path').datum(rows).attr('d', line).attr('fill', 'none').attr('stroke', dash.colors[1])
+        .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+      const dots = f.svg.append('g').selectAll('circle').data(rows.filter((d) => d.cpl != null)).join('circle')
+        .attr('cx', cx).attr('cy', (d) => f.y(d.cpl)).attr('r', 3)
+        .attr('fill', (d) => (avg != null && d.cpl > avg * 1.5 ? 'var(--cds-chart-status-critical)' : dash.colors[1]));
+      f.hover.on('mousemove', (e, d) => { f.showTip(e, d); dots.attr('r', (b) => (b === d ? 5 : 3)); })
+        .on('mouseleave', () => { f.tip.hidden = true; dots.attr('r', 3); });
+      f.hover.raise();
+    } else if (s.status === 'loading') { el.replaceChildren(); el.classList.add('dash-skeleton'); }
+    else { el.classList.remove('dash-skeleton'); fail(el); }
+  }
+
+  dash.onData(() => {
+    header();
+    drawAdsets();
+    drawSpend();
+    drawCpl();
+    drawDaily();
+  });
+
+  const named = document.getElementById(location.hash.slice(1));
+  if (named) { named.scrollIntoView(); dash.setLink(named.id); }
+})();
+</script>
