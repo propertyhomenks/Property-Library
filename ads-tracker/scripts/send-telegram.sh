@@ -5,6 +5,8 @@
 # Usage: bash ads-tracker/scripts/send-telegram.sh report.txt
 set -u
 file="${1:?usage: send-telegram.sh <message-file>}"
+# Default group: "Meta Ads Analysis" (not a secret). The token must still come from the environment.
+export TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:--5402191523}"
 if [ -z "${TELEGRAM_BOT_TOKEN:-}" ] || [ -z "${TELEGRAM_CHAT_ID:-}" ]; then
   echo "TELEGRAM_NOT_SET: TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing from the environment."
   exit 2
