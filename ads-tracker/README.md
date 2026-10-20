@@ -72,14 +72,16 @@ CPL 颜色：绿色 = 低于该户口 30 天平均；红色 = 高于平均 1.5 �
 
 ## 自动化（每天 9:00）
 
-Claude 桌面 app 的定时任务「Property Library 广告日报（9am，两个户口）」每天 9:00 会：
+Claude 云端 routine「Property Library 广告日报（9am，两个户口）」（https://claude.ai/code/routines/trig_01BSrikkArWDpx1krzhgt3Ra ）每天马来西亚时间 9:00 会：
 
-1. 从 Meta Ads 拉两个户口前一天的数据（户口合计 + 每个广告组）
+1. 从 Meta Ads 拉两个户口前一天的数据（户口合计 + 每个广告组）。**只读数据，不会开关或修改任何广告**
 2. 在上面「每日记录」加几行，更新数据快照
 3. 同步到 Notion、Google Drive，push 到 GitHub
 4. 发日报到 Telegram 群「Meta Ads Analysis」（bot：@ksiong02_bot）：先两个户口合计，再每个户口一段；每个广告组一行，各区块之间空一行
 
-只有 Claude 桌面 app 开着时才会跑；9 点时 app 没开，下次打开 app 时会补跑。
+跑在云端，电脑关着也会准时跑。云端用 `scripts/send-telegram.sh` 发 Telegram，token 存在云端环境「Default」的 Environment variables（`TELEGRAM_BOT_TOKEN`）。GitHub push 需要在这个 repo 装 Claude GitHub App。
+
+以前电脑上的定时任务（Claude 桌面 app）已在 2026-10-20 暂停，需要时可以在 app 的 Scheduled 里重新开。
 
 ### 连接 Telegram bot
 
@@ -102,6 +104,8 @@ Claude 桌面 app 的定时任务「Property Library 广告日报（9am，两个
 - `scripts/setup-telegram.ps1`：一步设定（贴 token → 存好 → 找群 → 发测试讯息）
 
 ## 更新记录
+
+- **2026-10-20**：日报搬到云端 routine（电脑关着也会跑），电脑上的定时任务暂停；加 `scripts/send-telegram.sh`；确认日报只读数据、不动广告
 
 - **2026-10-18**：加第二个广告账户 596944990727469：dashboard 加户口按钮（合计 / 各户口），日报和 Telegram 都包含两个户口；leads 只算私讯对话成效
 - **2026-10-18**：Telegram 日报改版：每个广告组一行，各区块之间空一行（总览 / 最低 CPL / 要注意 / 投放中广告组 / Dashboard）；加 `setup-telegram.ps1` 一步设定
